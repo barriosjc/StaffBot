@@ -4,6 +4,8 @@ use App\Livewire\Usuarios\Form as UsuariosForm;
 use App\Livewire\Usuarios\Index as UsuariosIndex;
 use App\Livewire\Horarios\Form as HorariosForm;
 use App\Livewire\Horarios\Index as HorariosIndex;
+use App\Livewire\SolicitudCoberturas\Index as SolicitudesCoberturaIndex;
+use App\Livewire\SolicitudCoberturas\Form as SolicitudesCoberturaForm;
 use Illuminate\Http\Request;
 use App\Http\Controllers\HorarioController;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +26,11 @@ Route::middleware('auth')->prefix('horarios')->name('horarios.')->group(function
     Route::get('/nuevo', [HorarioController::class, 'create'])->name('create.nuevo');
     Route::post('/', [HorarioController::class, 'store'])->name('store');
     Route::livewire('/{horario}/edit', HorariosForm::class)->name('edit');
+});
+
+Route::middleware('auth')->prefix('solicitud-coberturas')->name('solicitud-coberturas.')->group(function () {
+    Route::livewire('/', SolicitudesCoberturaIndex::class)->name('index');
+    route::livewire('/creare', SolicitudesCoberturaForm::class)->name('create');
 });
 
 Route::post('/logout', function (Request $request) {

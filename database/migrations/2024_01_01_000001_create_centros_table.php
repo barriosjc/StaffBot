@@ -8,12 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('horarios', function (Blueprint $table) {
+        Schema::create('centros', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->string('dia')->nullable();
-            $table->time('hora_inicio');
-            $table->time('hora_fin');
+            $table->string('codigo')->unique()->nullable();
             $table->boolean('activo')->default(true);
             $table->timestamps();
         });
@@ -21,6 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('horarios');
+        Schema::dropIfExists('centros');
     }
 };

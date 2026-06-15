@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             \Database\Seeders\CentroSeeder::class,
             \Database\Seeders\EspecialidadSeeder::class,
             \Database\Seeders\HorarioSeeder::class,
+            \Database\Seeders\SolicitudCoberturaSeeder::class,
         ]);
     }
 }

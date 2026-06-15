@@ -18,6 +18,12 @@
                 Horarios
             </a>
 
+            <div class="sidenav-menu-heading">SOLICITUDES</div>
+            <a class="nav-link" href="{{ route('solicitud-coberturas.index') }}">
+                <div class="nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
+                Solicitar
+            </a>
+
         </div>
     </div>
 
