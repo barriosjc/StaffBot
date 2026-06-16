@@ -30,7 +30,7 @@ Route::middleware('auth')->prefix('horarios')->name('horarios.')->group(function
 
 Route::middleware('auth')->prefix('solicitud-coberturas')->name('solicitud-coberturas.')->group(function () {
     Route::livewire('/', SolicitudesCoberturaIndex::class)->name('index');
-    route::livewire('/creare', SolicitudesCoberturaForm::class)->name('create');
+    Route::livewire('/creare/{solicitudId?}', SolicitudesCoberturaForm::class)->name('create');
 });
 
 Route::post('/logout', function (Request $request) {
@@ -41,6 +41,8 @@ Route::post('/logout', function (Request $request) {
 
     return redirect()->route('login');
 })->name('logout');
+
+Route::post('/whatsapp/webhook', App\Http\Controllers\WhatsAppWebhookController::class)->name('whatsapp.webhook');
 
 // Rutas de autenticación básicas para evitar errores si las llamadas existen
 Route::view('/login', 'auth.login')->name('login');

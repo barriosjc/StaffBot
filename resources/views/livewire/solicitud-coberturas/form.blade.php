@@ -4,13 +4,28 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="mb-0">
-                    <i class="fas fa-calendar-plus me-2 text-primary"></i>Nueva solicitud de cobertura
+                    <i class="fas fa-calendar-plus me-2 text-primary"></i>
+                    @if($modo === 'reenviar')
+                        Reenviar solicitud de cobertura
+                    @elseif($modo === 'enviar_otro')
+                        Enviar a otro empleado
+                    @else
+                        Nueva solicitud de cobertura
+                    @endif
                 </h4>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 small">
                         <li class="breadcrumb-item"><a href="#">Inicio</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('solicitud-coberturas.index') }}">Solicitudes</a></li>
-                        <li class="breadcrumb-item active">Nueva</li>
+                        <li class="breadcrumb-item active">
+                            @if($modo === 'reenviar')
+                                Reenviar
+                            @elseif($modo === 'enviar_otro')
+                                Enviar a otro
+                            @else
+                                Nueva
+                            @endif
+                        </li>
                     </ol>
                 </nav>
             </div>
@@ -170,7 +185,11 @@
                             Guardando...
                         </span>
                         <span wire:loading.remove wire:target="guardar">
-                            <i class="fas fa-paper-plane me-1"></i>Enviar solicitud
+                            @if($modo === 'reenviar' || $modo === 'enviar_otro')
+                                <i class="fas fa-paper-plane me-1"></i>Reenviar solicitud
+                            @else
+                                <i class="fas fa-paper-plane me-1"></i>Enviar solicitud
+                            @endif
                         </span>
                     </button>
                 </div>

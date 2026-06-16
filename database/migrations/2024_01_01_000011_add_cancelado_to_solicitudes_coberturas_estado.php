@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('solicitudes_coberturas', function (Blueprint $table) {
+        Schema::table('solicitud_coberturas', function (Blueprint $table) {
             $table->enum('estado', ['pendiente', 'aceptada', 'rechazada', 'cancelado'])
                   ->default('pendiente')
                   ->change();
@@ -17,7 +17,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('solicitudes_coberturas', function (Blueprint $table) {
+        Schema::table('solicitud_coberturas', function (Blueprint $table) {
             $table->enum('estado', ['pendiente', 'aceptada', 'rechazada'])
                   ->default('pendiente')
                   ->change();

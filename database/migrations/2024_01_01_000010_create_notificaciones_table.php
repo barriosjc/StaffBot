@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('solicitud_id')
                 ->nullable()
-                ->constrained('solicitudes_coberturas')
+                ->constrained('solicitud_coberturas')
                 ->nullOnDelete();
             $table->enum('tipo', ['recordatorio', 'alerta', 'confirmacion', 'sistema']);
             $table->text('mensaje');

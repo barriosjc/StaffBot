@@ -53,15 +53,15 @@ class Form extends Component
     //  Lifecycle
     // ──────────────────────────────────────────
 
-    public function mount(?int $usuarioId = null): void
+    public function mount($usuario = null): void
     {
         $this->centros        = Centro::activos()->orderBy('nombre')->get();
         $this->especialidades = Especialidad::activas()->orderBy('nombre')->get();
 
-        if ($usuarioId) {
+        if ($usuario) {
             $this->modoEdicion = true;
-            $this->usuarioId   = $usuarioId;
-            $this->cargarUsuario($usuarioId);
+            $this->usuarioId   = (int) $usuario;
+            $this->cargarUsuario((int) $usuario);
         } else {
             $this->agregarCombinacion(); // fila vacía por defecto para empleado
         }

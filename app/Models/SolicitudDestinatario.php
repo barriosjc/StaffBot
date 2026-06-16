@@ -17,6 +17,7 @@ class SolicitudDestinatario extends Model
         'estado',
         'notificado_at',
         'respondido_at',
+        'motivo_rechazo',
     ];
 
     protected $casts = [

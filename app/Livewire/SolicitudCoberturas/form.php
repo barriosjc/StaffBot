@@ -8,8 +8,10 @@ use App\Models\Horario;
 use App\Models\EmpleadoCentroEspecialidad;
 use App\Models\SolicitudCobertura;
 use App\Models\SolicitudDestinatario;
+use App\Services\WhatsApp\WhatsAppService;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 #[Layout('layouts.app')]
 class Form extends Component
@@ -28,6 +30,9 @@ class Form extends Component
     public $msgHorarios = '';
     public $msgEmpleados = '';
 
+    public $solicitudId = null;
+    public $modo = 'crear';
+
     protected $rules = [
         'centroId'        => 'required|exists:centros,id',
         'especialidadId'  => 'required|exists:especialidades,id',
@@ -36,6 +41,39 @@ class Form extends Component
         'empleadoId'      => 'required|exists:users,id',
         'modoEnvio'       => 'required|in:manual_uno,secuencial,broadcast',
     ];
+
+    public function mount(): void
+    {
+        $this->modo = request()->query('modo', 'crear');
+
+        if (!$this->solicitudId) {
+            return;
+        }
+
+        $solicitud = SolicitudCobertura::with('destinatarios')->findOrFail($this->solicitudId);
+        $this->centroId = (string) $solicitud->centro_id;
+        $this->especialidadId = (string) $solicitud->especialidad_id;
+        $this->fechaInicio = $solicitud->getRawOriginal('fecha_inicio');
+        $this->cargarHorarios();
+        $this->cargarEmpleados();
+        $this->horarioId = (string) $solicitud->horario_id;
+        $this->updatedHorarioId();
+        $this->modoEnvio = $solicitud->modo_envio;
+
+        $destinatario = $solicitud->destinatarios->sortBy('orden')->first();
+        if ($this->modo === 'enviar_otro') {
+            $this->empleadoId = '';
+        } elseif ($destinatario) {
+            $this->empleadoId = (string) $destinatario->empleado_id;
+            $yaExiste = collect($this->empleadosDisponibles)->firstWhere('id', (int) $this->empleadoId);
+            if (!$yaExiste) {
+                $this->empleadosDisponibles[] = [
+                    'id'   => $destinatario->empleado->id,
+                    'name' => $destinatario->empleado->name,
+                ];
+            }
+        }
+    }
 
     public function updatedCentroId()
     {
@@ -154,14 +192,22 @@ class Form extends Component
             'estado'          => 'pendiente',
         ]);
 
-        SolicitudDestinatario::create([
-            'solicitud_id' => $solicitud->id,
-            'empleado_id'  => $this->empleadoId,
-            'orden'        => 1,
-            'estado'       => 'pendiente',
+        $destinatario = SolicitudDestinatario::create([
+            'solicitud_id'  => $solicitud->id,
+            'empleado_id'   => $this->empleadoId,
+            'orden'         => 1,
+            'estado'        => 'no_respondio',
+            'notificado_at' => now(),
         ]);
 
-        $this->dispatch('notify', tipo: 'success', mensaje: 'Solicitud creada correctamente.');
+        try {
+            app(WhatsAppService::class)->sendToDestinatario($destinatario, $solicitud);
+        } catch (\Throwable $e) {
+            Log::error('Error al enviar WhatsApp: ' . $e->getMessage());
+        }
+
+        $msg = $this->modo === 'crear' ? 'Solicitud creada correctamente.' : 'Solicitud reenviada correctamente.';
+        $this->dispatch('notify', tipo: 'success', mensaje: $msg);
         $this->redirect(route('solicitud-coberturas.index'));
     }
 

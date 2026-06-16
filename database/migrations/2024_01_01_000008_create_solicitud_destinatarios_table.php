@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('solicitud_destinatarios', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('solicitud_id')->constrained('solicitudes_coberturas')->cascadeOnDelete();
+            $table->foreignId('solicitud_id')->constrained('solicitud_coberturas')->cascadeOnDelete();
             $table->foreignId('empleado_id')->constrained('users')->restrictOnDelete();
             $table->unsignedTinyInteger('orden')->default(1)->comment('Para modo secuencial');
             $table->enum('estado', [

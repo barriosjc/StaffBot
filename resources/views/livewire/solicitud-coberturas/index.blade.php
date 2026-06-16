@@ -9,8 +9,8 @@
 
         <div class="card mb-3">
             <div class="card-body py-2">
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-6">
+                <div class="d-flex align-items-end gap-3">
+                    <div class="flex-grow-1">
                         <label class="form-label small mb-1">Buscar</label>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -22,12 +22,12 @@
                             >
                         </div>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end pb-1 gap-1">
+                    <div class="d-flex align-items-end gap-1 pb-1 flex-shrink-0">
                         <button class="btn btn-sm btn-outline-secondary" wire:click="$set('busqueda', ''); $set('filtroEstado', ['pendiente', 'aceptada', 'rechazada', 'cancelado'])">
-                            <i class="fas fa-times me-1"></i>Limpiar
+                            <i class="fas fa-times me-1"></i>Limpiar busqueda
                         </button>
-                        <div class="dropdown flex-grow-1">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 @if(count($filtroEstado) === 4)
                                     Estados
                                 @elseif(count($filtroEstado) === 1)
@@ -102,6 +102,7 @@
                                         <i class="fas fa-sort text-muted ms-1"></i>
                                     @endif
                                 </th>
+                                <th class="text-center" style="width:100px">Tiempo</th>
                                 <th class="text-center" style="width:50px">Acciones</th>
                             </tr>
                         </thead>
@@ -150,17 +151,29 @@
                                             <span class="badge bg-secondary">Cancelado</span>
                                         @endif
                                     </td>
+                                    <td class="small text-nowrap text-center">
+                                        @php
+                                            $notificado = $solicitud->destinatarios->sortBy('orden')->first()?->notificado_at;
+                                            $mins = $notificado ? (int) round($notificado->diffInMinutes(now())) : null;
+                                        @endphp
+                                        @if($mins !== null)
+                                            @php
+                                                $ratio = min($mins / 25, 1);
+                                                $hue = 120 - ($ratio * 120);
+                                            @endphp
+                                            <span class="badge" style="background-color:hsl({{ $hue }},75%,40%);color:#fff">
+                                                {{ $mins >= 30 ? '+30 min' : $mins . ' min' }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
                                     <td class="text-center">
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('solicitud-coberturas.create', $solicitud->id) }}">
-                                                        <i class="fas fa-edit me-2"></i>Editar
-                                                    </a>
-                                                </li>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="max-height:240px">
                                                 <li>
                                                     <button class="dropdown-item" wire:click="reenviar({{ $solicitud->id }})">
                                                         <i class="fas fa-redo me-2"></i>Reenviar al mismo
@@ -184,56 +197,66 @@
                                 
                                 {{-- Fila de destinatarios (detalle) --}}
                                 @if($this->expandedSolicitud === $solicitud->id)
-                                    <tr class="table-light">
-                                        <td colspan="9">
+                                    <tr class="bg-white">
+                                        <td colspan="10">
                                             <div class="p-3">
                                                 <h6 class="mb-2"><i class="fas fa-users me-2"></i>Destinatarios</h6>
-                                                <table class="table table-sm table-bordered mb-0">
-                                                    <thead class="table-light">
-                                                        <tr>
-                                                            <th>Empleado</th>
-                                                            <th>Orden</th>
-                                                            <th>Estado</th>
-                                                            <th>Notificado</th>
-                                                            <th>Respondido</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @forelse($solicitud->destinatarios as $destinatario)
+                                                    <table class="table table-sm table-bordered mb-0">
+                                                        <thead class="table-light">
                                                             <tr>
-                                                                <td class="small">{{ $destinatario->empleado?->name ?? '—' }}</td>
-                                                                <td class="small text-center">{{ $destinatario->orden }}</td>
-                                                                <td>
-                                                                    @if($destinatario->estado === 'pendiente')
-                                                                        <span class="badge bg-warning text-dark">Pendiente</span>
-                                                                    @elseif($destinatario->estado === 'no_respondio')
-                                                                        <span class="badge bg-secondary">No respondió</span>
-                                                                    @elseif($destinatario->estado === 'aceptada')
-                                                                        <span class="badge bg-success">Aceptada</span>
-                                                                    @elseif($destinatario->estado === 'rechazada')
-                                                                        <span class="badge bg-danger">Rechazada</span>
-                                                                    @elseif($destinatario->estado === 'expirada')
-                                                                        <span class="badge bg-dark">Expirada</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td class="small">
-                                                                    @if($destinatario->notificado_at)
-                                                                        {{ $destinatario->notificado_at }}
-                                                                    @else
-                                                                        <span class="text-muted">—</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td class="small">
-                                                                    @if($destinatario->respondido_at)
-                                                                        {{ $destinatario->respondido_at }}
-                                                                    @else
-                                                                        <span class="text-muted">—</span>
-                                                                    @endif
-                                                                </td>
+                                                                <th>Empleado</th>
+                                                                <th>Orden</th>
+                                                                <th>Estado</th>
+                                                                <th style="width:80px">Motivo</th>
+                                                                <th>Notificado</th>
+                                                                <th>Respondido</th>
                                                             </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @forelse($solicitud->destinatarios as $destinatario)
+                                                                <tr>
+                                                                    <td class="small">{{ $destinatario->empleado?->name ?? '—' }}</td>
+                                                                    <td class="small text-center">{{ $destinatario->orden }}</td>
+                                                                    <td>
+                                                                        @if($destinatario->estado === 'no_respondio')
+                                                                            <span class="badge bg-warning text-dark">No respondió</span>
+                                                                        @elseif($destinatario->estado === 'aceptada')
+                                                                            <span class="badge bg-success">Aceptada</span>
+                                                                        @elseif($destinatario->estado === 'rechazada')
+                                                                            <span class="badge bg-danger">Rechazada</span>
+                                                                        @elseif($destinatario->estado === 'expirada')
+                                                                            <span class="badge bg-dark">Expirada</span>
+                                                                        @elseif($destinatario->estado === 'cancelado')
+                                                                            <span class="badge bg-secondary">Cancelado</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="small">
+                                                                        @if($destinatario->motivo_rechazo)
+                                                                            <span class="badge bg-danger badge-sm" title="{{ $destinatario->motivo_rechazo }}" style="cursor:help">
+                                                                                <i class="fas fa-comment-dots me-1"></i>Motivo
+                                                                            </span>
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="small">
+                                                                        @if($destinatario->notificado_at)
+                                                                            {{ $destinatario->notificado_at }}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="small">
+                                                                        @if($destinatario->respondido_at)
+                                                                            {{ $destinatario->respondido_at }}
+                                                                        @else
+                                                                            <span class="text-muted">—</span>
+                                                                        @endif
+                                                                    </td>
+                                                                </tr>
                                                         @empty
                                                             <tr>
-                                                                <td colspan="5" class="text-center text-muted">No hay destinatarios</td>
+                                                                <td colspan="6" class="text-center text-muted">No hay destinatarios</td>
                                                             </tr>
                                                         @endforelse
                                                     </tbody>
@@ -244,7 +267,7 @@
                                 @endif
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted">
+                                    <td colspan="10" class="text-center py-4 text-muted">
                                         <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
                                         No se encontraron solicitudes.
                                     </td>
@@ -269,6 +292,37 @@
     @push('scripts')
     <script>
         document.addEventListener('livewire:initialized', () => {
+            document.addEventListener('shown.bs.dropdown', function (e) {
+                const menu = e.target.nextElementSibling;
+                if (menu && menu.classList.contains('dropdown-menu')) {
+                    menu.style.overflowY = 'auto';
+                }
+            });
+
+            Livewire.on('pedir-motivo-rechazo', ({ destinatarioId }) => {
+                Swal.fire({
+                    title: 'Motivo de rechazo',
+                    input: 'textarea',
+                    inputLabel: '¿Por qué rechazás la solicitud?',
+                    inputPlaceholder: 'Escribí el motivo...',
+                    inputAttributes: { required: true },
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-times me-1"></i>Rechazar',
+                    cancelButtonText: 'Volver',
+                    confirmButtonColor: '#dc3545',
+                    reverseButtons: true,
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Debés ingresar un motivo.';
+                        }
+                    },
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        @this.call('rechazarConMotivo', destinatarioId, result.value);
+                    }
+                });
+            });
+
             Livewire.on('pedir-confirmacion-cancelar', ({ id }) => {
                 Swal.fire({
                     title: '¿Cancelar solicitud?',

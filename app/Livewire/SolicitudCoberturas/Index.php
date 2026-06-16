@@ -3,8 +3,10 @@
 namespace App\Livewire\SolicitudCoberturas;
 
 use App\Models\SolicitudCobertura;
+use App\Models\SolicitudDestinatario;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class Index extends Component
 {
@@ -45,9 +47,27 @@ class Index extends Component
         // No aplica para solicitudes de cobertura
     }
 
+    public function reenviar(int $id): void
+    {
+        $this->redirect(route('solicitud-coberturas.create', ['solicitudId' => $id, 'modo' => 'reenviar']));
+    }
+
+    public function enviarOtro(int $id): void
+    {
+        $this->redirect(route('solicitud-coberturas.create', ['solicitudId' => $id, 'modo' => 'enviar_otro']));
+    }
+
     public function cancelar(int $id): void
     {
         $solicitud = SolicitudCobertura::findOrFail($id);
+        $maxOrden = $solicitud->destinatarios()->max('orden') ?? 0;
+        SolicitudDestinatario::create([
+            'solicitud_id'  => $solicitud->id,
+            'empleado_id'   => Auth::id(),
+            'orden'         => $maxOrden + 1,
+            'estado'        => 'cancelado',
+            'respondido_at' => now(),
+        ]);
         $solicitud->update(['estado' => 'cancelado']);
         $this->dispatch('notify', tipo: 'success', mensaje: 'Solicitud cancelada correctamente.');
     }
@@ -65,8 +85,8 @@ class Index extends Component
     public function mount(): void
     {
         $this->filtroEstado = ['pendiente', 'aceptada', 'rechazada', 'cancelado'];
-        $this->ordenarPor = 'fecha_inicio';
-        $this->ordenDir = 'desc';
+        $this->ordenarPor = 'created_at';
+        $this->ordenDir = 'asc';
     }
 
     public function render()
@@ -96,7 +116,8 @@ class Index extends Component
             'supervisor' => 'supervisor_id',
             'estado' => 'estado',
             'fecha_inicio' => 'fecha_inicio',
-            default => 'fecha_inicio',
+            'created_at' => 'created_at',
+            default => 'created_at',
         };
     }
 }
