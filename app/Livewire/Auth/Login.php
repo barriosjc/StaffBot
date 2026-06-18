@@ -2,15 +2,16 @@
 
 namespace App\Livewire\Auth;
 
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 
 class Login extends Component
 {
-    public $email = '';
-    public $password = '';
+    public string $email = '';
+    public string $password = '';
 
-    protected $rules = [
+    protected array $rules = [
         'email' => 'required|email',
         'password' => 'required|min:6',
     ];
@@ -26,7 +27,7 @@ class Login extends Component
 
         $this->addError('email', 'Las credenciales no son válidas.');
     }
-    public function render()
+    public function render(): View
     {
         return view('livewire.auth.login');
     }

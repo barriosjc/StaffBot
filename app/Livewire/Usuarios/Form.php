@@ -6,7 +6,9 @@ use App\Models\Centro;
 use App\Models\EmpleadoCentroEspecialidad;
 use App\Models\Especialidad;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class Form extends Component
@@ -46,14 +48,14 @@ class Form extends Component
     // ──────────────────────────────────────────
     //  Catálogos
     // ──────────────────────────────────────────
-    public $centros       = [];
-    public $especialidades = [];
+    public Collection $centros;
+    public Collection $especialidades;
 
     // ──────────────────────────────────────────
     //  Lifecycle
     // ──────────────────────────────────────────
 
-    public function mount($usuario = null): void
+    public function mount(mixed $usuario = null): void
     {
         $this->centros        = Centro::activos()->orderBy('nombre')->get();
         $this->especialidades = Especialidad::activas()->orderBy('nombre')->get();
@@ -235,7 +237,7 @@ class Form extends Component
     //  Render
     // ──────────────────────────────────────────
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.usuarios.form')
             ->layout('layouts.app');

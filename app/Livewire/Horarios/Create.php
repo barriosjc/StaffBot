@@ -2,25 +2,27 @@
 
 namespace App\Livewire\Horarios;
 
-use Livewire\Component;
 use App\Models\Centro;
 use App\Models\Especialidad;
 use App\Models\Horario;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
+use Livewire\Component;
 
 class Create extends Component
 {
-    public $centros = [];
-    public $especialidades = [];
-    public $dias = [];
+    public Collection $centros;
+    public Collection $especialidades;
+    public array $dias = [];
 
-    public $centro_id;
-    public $especialidad_id;
-    public $dia_semana;
-    public $hora_inicio = '08:00';
-    public $hora_fin = '09:00';
-    public $activo = true;
+    public string $centro_id = '';
+    public string $especialidad_id = '';
+    public string $dia_semana = '';
+    public string $hora_inicio = '08:00';
+    public string $hora_fin = '09:00';
+    public bool $activo = true;
 
-    public function mount()
+    public function mount(): void
     {
         $this->centros = Centro::orderBy('nombre')->get();
         $this->especialidades = Especialidad::orderBy('nombre')->get();
@@ -35,7 +37,7 @@ class Create extends Component
         ];
     }
 
-    protected function rules()
+    protected function rules(): array
     {
         $diasList = implode(',', array_keys($this->dias));
 
@@ -68,7 +70,7 @@ class Create extends Component
         return redirect()->route('horarios.index');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.horarios.create');
     }

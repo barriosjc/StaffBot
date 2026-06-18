@@ -4,6 +4,8 @@ namespace App\Livewire\Horarios;
 use App\Models\Centro;
 use App\Models\Especialidad;
 use App\Models\Horario;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class Form extends Component
@@ -16,10 +18,10 @@ class Form extends Component
     public string $hora_fin = '09:00';
     public bool $activo = true;
     
-    public $centros = [];
-    public $especialidades = [];
+    public Collection $centros;
+    public Collection $especialidades;
     
-    protected $dias = [
+    protected array $dias = [
         'lunes' => 'Lunes',
         'martes' => 'Martes',
         'miercoles' => 'Miércoles',
@@ -29,7 +31,7 @@ class Form extends Component
         'domingo' => 'Domingo',
     ];
 
-    public function mount($horario = null): void
+    public function mount(mixed $horario = null): void
     {
         $this->centros = Centro::activos()->orderBy('nombre')->get();
         $this->especialidades = Especialidad::activas()->orderBy('nombre')->get();
@@ -64,7 +66,7 @@ class Form extends Component
         ];
     }
 
-    public function getDiasProperty()
+    public function getDiasProperty(): array
     {
         return $this->dias;
     }
@@ -95,7 +97,7 @@ class Form extends Component
         $this->redirect(route('horarios.index'));
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.horarios.form', [
             'dias' => $this->dias,

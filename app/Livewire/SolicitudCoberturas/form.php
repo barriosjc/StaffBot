@@ -3,37 +3,39 @@
 namespace App\Livewire\SolicitudCoberturas;
 
 use App\Models\Centro;
+use App\Models\EmpleadoCentroEspecialidad;
 use App\Models\Especialidad;
 use App\Models\Horario;
-use App\Models\EmpleadoCentroEspecialidad;
 use App\Models\SolicitudCobertura;
 use App\Models\SolicitudDestinatario;
 use App\Services\WhatsApp\WhatsAppService;
-use Livewire\Component;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 #[Layout('layouts.app')]
 class Form extends Component
 {
-    public $centroId = '';
-    public $especialidadId = '';
-    public $fechaInicio = '';
-    public $horarioId = '';
-    public $empleadoId = '';
-    public $modoEnvio = 'manual_uno';
+    public string $centroId = '';
+    public string $especialidadId = '';
+    public string $fechaInicio = '';
+    public string $horarioId = '';
+    public string $empleadoId = '';
+    public string $modoEnvio = 'manual_uno';
 
-    public $horariosDisponibles = [];
-    public $empleadosDisponibles = [];
-    public $horaInicio = '';
-    public $horaFin = '';
-    public $msgHorarios = '';
-    public $msgEmpleados = '';
+    public array $horariosDisponibles = [];
+    public array $empleadosDisponibles = [];
+    public string $horaInicio = '';
+    public string $horaFin = '';
+    public string $msgHorarios = '';
+    public string $msgEmpleados = '';
 
-    public $solicitudId = null;
-    public $modo = 'crear';
+    public ?int $solicitudId = null;
+    public string $modo = 'crear';
 
-    protected $rules = [
+    protected array $rules = [
         'centroId'        => 'required|exists:centros,id',
         'especialidadId'  => 'required|exists:especialidades,id',
         'fechaInicio'     => 'required|date',
@@ -75,27 +77,27 @@ class Form extends Component
         }
     }
 
-    public function updatedCentroId()
+    public function updatedCentroId(): void
     {
         $this->resetHorarios();
         $this->cargarHorarios();
         $this->cargarEmpleados();
     }
 
-    public function updatedEspecialidadId()
+    public function updatedEspecialidadId(): void
     {
         $this->resetHorarios();
         $this->cargarHorarios();
         $this->cargarEmpleados();
     }
 
-    public function updatedFechaInicio()
+    public function updatedFechaInicio(): void
     {
         $this->resetHorarios();
         $this->cargarHorarios();
     }
 
-    public function updatedHorarioId()
+    public function updatedHorarioId(): void
     {
         if (!$this->horarioId) {
             $this->horaInicio = '';
@@ -110,7 +112,7 @@ class Form extends Component
         }
     }
 
-    private function resetHorarios()
+    private function resetHorarios(): void
     {
         $this->horarioId = '';
         $this->horaInicio = '';
@@ -119,7 +121,7 @@ class Form extends Component
         $this->msgHorarios = '';
     }
 
-    public function cargarHorarios()
+    public function cargarHorarios(): void
     {
         $this->horariosDisponibles = [];
         $this->msgHorarios = '';
@@ -148,7 +150,7 @@ class Form extends Component
         }
     }
 
-    public function cargarEmpleados()
+    public function cargarEmpleados(): void
     {
         $this->empleadosDisponibles = [];
         $this->empleadoId = '';
@@ -173,7 +175,7 @@ class Form extends Component
         }
     }
 
-    public function guardar()
+    public function guardar(): void
     {
         $this->validate();
 
@@ -206,6 +208,14 @@ class Form extends Component
             Log::error('Error al enviar WhatsApp: ' . $e->getMessage());
         }
 
+        if ($this->modo === 'crear' || $this->modo === 'enviar_otro') {
+            try {
+                app(WhatsAppService::class)->cancelarSolicitudAnterior($solicitud, $this->empleadoId);
+            } catch (\Throwable $e) {
+                Log::error('Error al cancelar solicitud anterior: ' . $e->getMessage());
+            }
+        }
+
         $msg = $this->modo === 'crear' ? 'Solicitud creada correctamente.' : 'Solicitud reenviada correctamente.';
         $this->dispatch('notify', tipo: 'success', mensaje: $msg);
         $this->redirect(route('solicitud-coberturas.index'));
@@ -223,7 +233,7 @@ class Form extends Component
         return $this->fechaInicio;
     }
 
-    public function render()
+    public function render(): View
     {
         $centros = Centro::where('activo', true)->get();
         $especialidades = Especialidad::where('activo', true)->get();
